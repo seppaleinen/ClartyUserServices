@@ -2,7 +2,7 @@
 # Introduktion
 Hej allesammans!
 
-De flesta av er har säkert hört talas om ett projekt som vi ska försöka dra igång inom CAD, men lovade att skicka ut ett mail om det vilket har dragit ut på tiden i vanlig ordning.
+De flesta av er har säkert hört talas om ett projekt som vi ska försöka dra igång inom CAD, nämligen Clarty.
 
 Tanken är i vilket fall att det skulle vara kul att ha ett gemensamt projekt för oss, där vi kan få experimentera med nya tekniker, ramverk och sånt som gör en glad! Vi har en sån otroligt bred kunskap tillsammans att jag tror att om vi gör ett hyfsat brett projekt tillsammans så kommer vi kunna lära varandra och ha väldigt roligt samtidigt!
 
@@ -17,10 +17,10 @@ Men en tanke är att vi försöker dela upp systemet i microservicar, bara för 
 
 Så systemet skulle förslagsvis kunna vara uppdelad på det här sättet:
 
-Frontend: Angular2
-Backend för inloggning
-Backend för administratörstjänster
-Backend för användartjänster
+* Frontend: Angular2
+* Backend för inloggning
+* Backend för administratörstjänster
+* Backend för användartjänster
 
 Sen kan vi få in nåt CI-system (jenkins/gocd/travis/ eller nåt annat) som bygger och deployar ut våra releaser till en cloud-provider (digital ocean/aws/google cloud eller liknande) och där kan vi även snöa in oss på hur man bygger organiserade server-kluster (docker-swarm/kubernetes/mesos)
 
