@@ -27,6 +27,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		// Create a default account
+		auth.authenticationProvider(new CustomAuthenticationProvider());
 		auth.inMemoryAuthentication().withUser("admin").password("password").roles("ADMIN");
 	}
 }
+
+
+
+/*<authentication-manager>
+        <authentication-provider
+          ref="customAuthenticationProvider" />
+    </authentication-manager>*/
