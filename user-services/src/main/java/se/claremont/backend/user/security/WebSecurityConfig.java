@@ -1,5 +1,8 @@
 package se.claremont.backend.user.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -8,9 +11,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import se.claremont.backend.user.repository.UserRepository;
+
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+	
+	@Autowired
+	private ApplicationContext appContext;
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -27,14 +35,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		// Create a default account
-		auth.authenticationProvider(new CustomAuthenticationProvider());
+		UserRepository userDao = (UserRepository)appContext.getBean("userDao");
+		CustomAuthenticationProvider customAuthenticationProvider = new CustomAuthenticationProvider();
+		customAuthenticationProvider.setUserDao(userDao);
+		auth.authenticationProvider(customAuthenticationProvider);
 		auth.inMemoryAuthentication().withUser("admin").password("password").roles("ADMIN");
 	}
+
+	public ApplicationContext getAppContext() {
+		return appContext;
+	}
+
+	public void setAppContext(ApplicationContext appContext) {
+		this.appContext = appContext;
+	}
+
 }
-
-
-
-/*<authentication-manager>
-        <authentication-provider
-          ref="customAuthenticationProvider" />
-    </authentication-manager>*/

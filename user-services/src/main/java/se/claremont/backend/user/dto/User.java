@@ -1,4 +1,4 @@
-package se.claremont.backend.user.model;
+package se.claremont.backend.user.dto;
 
 public class User {
 

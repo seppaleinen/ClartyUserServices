@@ -2,12 +2,18 @@ package se.claremont.backend.user.security;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
+
 
 import microsoft.exchange.webservices.data.core.ExchangeService;
 import microsoft.exchange.webservices.data.core.enumeration.misc.ExchangeVersion;
@@ -15,10 +21,14 @@ import microsoft.exchange.webservices.data.core.service.item.EmailMessage;
 import microsoft.exchange.webservices.data.credential.ExchangeCredentials;
 import microsoft.exchange.webservices.data.credential.WebCredentials;
 import microsoft.exchange.webservices.data.property.complex.MessageBody;
+import se.claremont.backend.user.repository.UserRepository;
+import se.claremont.backend.user.repository.entities.User;
 
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
-
+	
+	private UserRepository userDao;
+	
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		String username = authentication.getName();
@@ -31,11 +41,16 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		 * database. If true, the user has successfully logged in before and has
 		 * received a confirmation-mail. return authentication.true
 		 */
+		List<User> userList = userDao.findByUsername(username);
+		if(userList != null){
+			return authentication;
+		}
+		
 
 		/*
 		 * 1. When the user logins for the first time: Try to send a mail to the
 		 * user itself for confirmation that login was successful
-		 * <!-- START "login first time" -->
+		 * <!-- -------------START "login first time"------------ -->
 		 */
 		ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
 		ExchangeCredentials credentials = new WebCredentials(username, password);
@@ -61,7 +76,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 			authentication = new UsernamePasswordAuthenticationToken(username, password);
 		}
 		
-		// <!-- END "login first time" -->
+		// <!-- -------------END "login first time"------------ -->
 
 		/*
 		 * TODO: If the user has successfully sent a mail, the username will be
@@ -75,6 +90,14 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 	@Override
 	public boolean supports(Class<?> authentication) {
 		return authentication.equals(UsernamePasswordAuthenticationToken.class);
+	}
+
+	public UserRepository getUserDao() {
+		return userDao;
+	}
+
+	public void setUserDao(UserRepository userDao) {
+		this.userDao = userDao;
 	}
 
 }
