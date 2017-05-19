@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
@@ -26,13 +27,14 @@ public class UserRepositoryPostgreSQL implements UserRepository {
 	}
 
 	@Override
+	@Transactional
 	public <S extends User> S save(S entity) {
-		if (entityInformation.isNew(entity)) {
+		if (entity.getId() == null) {
 			entityManager.persist(entity);
-			return entity;
-		} else {
-			return entityManager.merge(entity);
-		}
+		      return entity;
+		    } else {
+		      return entityManager.merge(entity);
+		    }
 	}
 
 	@Override

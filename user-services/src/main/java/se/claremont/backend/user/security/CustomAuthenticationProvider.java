@@ -37,18 +37,18 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		// possible
 
 		/*
-		 * TODO create an if-statement that checks if the username exists in a
+		 * 1. An if-statement that checks if the username exists in a
 		 * database. If true, the user has successfully logged in before and has
 		 * received a confirmation-mail. return authentication.true
 		 */
 		List<User> userList = userDao.findByUsername(username);
-		if(userList != null){
+		if(userList != null && !userList.isEmpty()){
 			return authentication;
 		}
 		
 
 		/*
-		 * 1. When the user logins for the first time: Try to send a mail to the
+		 * 2. If the user logins for the first time: Try to send a mail to the
 		 * user itself for confirmation that login was successful
 		 * <!-- -------------START "login first time"------------ -->
 		 */
@@ -79,11 +79,15 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		// <!-- -------------END "login first time"------------ -->
 
 		/*
-		 * TODO: If the user has successfully sent a mail, the username will be
+		 * 3. If the user has successfully sent a mail, the username will be
 		 * stored in a database. This will enable the backend to check against
 		 * the database if there has been a successful login at a previous
 		 * loginattempt.
 		 */
+		User user = new User();
+		user.setUsername(username);
+		userDao.save(user);
+		
 		return authentication;
 	}
 
