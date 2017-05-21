@@ -16,14 +16,14 @@ public class UserRepositoryMock implements UserRepository{
 	
 	static {
 		User user = new User();
-		user.setId(new Long(1));
+		user.setId(1L);
 		user.setUsername("axel.jansson@claremont.se");
 		users.add(user);
 	}
 
 	@Override
 	public <S extends User> S save(S entity) {
-		entity.setId(new Long(users.size() + 1));
+		entity.setId((long) (users.size() + 1));
 		users.add(entity);
 		return entity;
 	}

@@ -8,7 +8,9 @@ import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -28,18 +30,18 @@ import se.claremont.backend.user.repository.entities.User;
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 	
 	private UserRepository userDao;
+	private static String outlookApi = "https://outlook.office365.com/EWS/Exchange.asmx";
 	
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		String username = authentication.getName();
 		String password = (String)authentication.getCredentials();
-		// TODO Alternative solution: Authenticate against outlooks api if it's
-		// possible
+		// TODO Alternative solution: Authenticate against outlooks api if it's possible.
+
 
 		/*
-		 * 1. An if-statement that checks if the username exists in a
-		 * database. If true, the user has successfully logged in before and has
-		 * received a confirmation-mail. return authentication.true
+		 * 1. Check if the username exists in database. If so, the user has successfully logged in before and has
+		 * received a confirmation email. Return authenticated user.
 		 */
 		List<User> userList = userDao.findByUsername(username);
 		if(userList != null && !userList.isEmpty()){
@@ -49,7 +51,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
 		/*
 		 * 2. If the user logins for the first time: Try to send a mail to the
-		 * user itself for confirmation that login was successful
+		 * user for confirmation that login was successful.
+		 *
 		 * <!-- -------------START "login first time"------------ -->
 		 */
 		ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
@@ -57,32 +60,34 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		service.setCredentials(credentials);
 		
 		try {
-			URI ewsUrl = new URI("https://outlook.office365.com/EWS/Exchange.asmx");
+			URI ewsUrl = new URI(outlookApi);
 			service.setUrl(ewsUrl);
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new AuthenticationServiceException("Outlook service seems to be down", e);
 		}
 		
 		
 		EmailMessage msg;
 		try {
 			msg = new EmailMessage(service);
-			msg.setSubject("Email från Clarty :D:D:D:D:D:D:D");
-			msg.setBody(MessageBody.getMessageBodyFromText("Sent using the EWS Java API. Har lyckats få till det att skicka ett mail när man försöker logga in via Clarty :D. Tanken är att man skickar från sig själv, till sig själv"));
+			msg.setSubject("Välkommen till Clarty!");
+			msg.setBody(MessageBody.getMessageBodyFromText("Du är nu registrerad på Clarty. Detta mail går inte att svara på."));
 			msg.getToRecipients().add(username);
 			msg.send();
 		} catch (Exception e) {
-			authentication = new UsernamePasswordAuthenticationToken(username, password);
+			throw new AccessDeniedException("Login failed", e);
 		}
+
+		authentication = new UsernamePasswordAuthenticationToken(username, password);
 		
 		// <!-- -------------END "login first time"------------ -->
+
 
 		/*
 		 * 3. If the user has successfully sent a mail, the username will be
 		 * stored in a database. This will enable the backend to check against
 		 * the database if there has been a successful login at a previous
-		 * loginattempt.
+		 * login attempt.
 		 */
 		User user = new User();
 		user.setUsername(username);
