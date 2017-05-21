@@ -2,20 +2,15 @@ package se.claremont.backend.user.security;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 
-import javax.annotation.Resource;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-
 
 import microsoft.exchange.webservices.data.core.ExchangeService;
 import microsoft.exchange.webservices.data.core.enumeration.misc.ExchangeVersion;
@@ -25,6 +20,8 @@ import microsoft.exchange.webservices.data.credential.WebCredentials;
 import microsoft.exchange.webservices.data.property.complex.MessageBody;
 import se.claremont.backend.user.repository.UserRepository;
 import se.claremont.backend.user.repository.entities.User;
+
+// TODO fix real integration to Outlook API
 
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
@@ -36,18 +33,18 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		String username = authentication.getName();
 		String password = (String)authentication.getCredentials();
-		// TODO Alternative solution: Authenticate against outlooks api if it's possible.
-
 
 		/*
 		 * 1. Check if the username exists in database. If so, the user has successfully logged in before and has
 		 * received a confirmation email. Return authenticated user.
 		 */
-		List<User> userList = userDao.findByUsername(username);
-		if(userList != null && !userList.isEmpty()){
+		try {
+			userDao.findByUsername(username);
 			return authentication;
+		} catch(UsernameNotFoundException e){
+			// continue
 		}
-		
+
 
 		/*
 		 * 2. If the user logins for the first time: Try to send a mail to the
@@ -63,9 +60,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 			URI ewsUrl = new URI(outlookApi);
 			service.setUrl(ewsUrl);
 		} catch (URISyntaxException e) {
-			throw new AuthenticationServiceException("Outlook service seems to be down", e);
+			throw new AuthenticationServiceException("Invalid outlook endpoint", e);
 		}
-		
 		
 		EmailMessage msg;
 		try {
@@ -75,7 +71,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 			msg.getToRecipients().add(username);
 			msg.send();
 		} catch (Exception e) {
-			throw new AccessDeniedException("Login failed", e);
+			throw new BadCredentialsException("Login failed", e);
 		}
 
 		authentication = new UsernamePasswordAuthenticationToken(username, password);

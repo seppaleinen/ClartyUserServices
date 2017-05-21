@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Repository;
 
 import se.claremont.backend.user.repository.entities.User;
@@ -13,7 +14,7 @@ import se.claremont.backend.user.repository.entities.User;
 public class UserRepositoryMock implements UserRepository{
 
 	private static List<User> users = new ArrayList<>();
-	
+
 	static {
 		User user = new User();
 		user.setId(1L);
@@ -26,6 +27,27 @@ public class UserRepositoryMock implements UserRepository{
 		entity.setId((long) (users.size() + 1));
 		users.add(entity);
 		return entity;
+	}
+
+	@Override
+	public User findByUsername(String username) {
+		for (User user : users) {
+			if(user.getUsername().equals(username)){
+				return user;
+			}
+		}
+		throw new UsernameNotFoundException(String.format("User %s not found", username));
+	}
+
+	@Override
+	public void deleteByUsername(String username) {
+		for(User user : users) {
+			if(user.getUsername().equals(username)) {
+				users.remove(user);
+				return;
+			}
+		}
+		throw new UsernameNotFoundException(String.format("User %s not found", username));
 	}
 
 	@Override
@@ -85,28 +107,9 @@ public class UserRepositoryMock implements UserRepository{
 	@Override
 	public void deleteAll() {
 		// TODO Auto-generated method stub
-		
 	}
 
-	@Override
-	public List<User> findByUsername(String username) {
-		List<User> usersTemp = null;
-		for (User user : users) {
-			if(user.getUsername().equals(username)){
-				usersTemp = new ArrayList<>();
-				usersTemp.add(user);
-				return usersTemp;
-			}
-		}
-		return usersTemp;
-	}
 
-	@Override
-	public void deleteByUsername(String username) {
-		// TODO Auto-generated method stub
-		
-	};
-	
 
 
 }

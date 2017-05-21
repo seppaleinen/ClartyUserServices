@@ -1,7 +1,5 @@
 package se.claremont.backend.user.repository;
 
-import java.util.List;
-
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -36,6 +34,22 @@ public class UserRepositoryPostgreSQL implements UserRepository {
 		      return entityManager.merge(entity);
 		    }
 	}
+
+	@Override
+	public User findByUsername(String username) {
+		return entityManager
+				.createQuery("SELECT u FROM User u WHERE u.username LIKE :username", User.class)
+				.setParameter("username", username)
+				.getSingleResult();
+	}
+
+	@Override
+	public void deleteByUsername(String username) {
+		entityManager.createQuery("DELETE FROM User u where u.username LIKE :username")
+				.setParameter("username", username)
+				.executeUpdate();
+	}
+
 
 	@Override
 	public <S extends User> Iterable<S> save(Iterable<S> entities) {
@@ -95,19 +109,6 @@ public class UserRepositoryPostgreSQL implements UserRepository {
 	public void deleteAll() {
 		// TODO Auto-generated method stub
 
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<User> findByUsername(String username) {
-		return entityManager
-				.createQuery("SELECT u FROM User u WHERE u.username LIKE :username", User.class)
-				.setParameter("username", username)
-				.getResultList();
-	}
-
-	@Override
-	public void deleteByUsername(String username) {
 	}
 
 }
