@@ -36,7 +36,7 @@ public class UserRepositoryMock implements UserRepository{
 				return user;
 			}
 		}
-		throw new UsernameNotFoundException(String.format("User %s not found", username));
+		return null;
 	}
 
 	@Override

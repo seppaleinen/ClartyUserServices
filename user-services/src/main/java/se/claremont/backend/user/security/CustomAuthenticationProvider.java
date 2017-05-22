@@ -54,15 +54,13 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 			 * 1. Check if the username exists in database. If so, the user has successfully logged in before and has
 			 * received a confirmation email.
 			 */
-			userDao.findByUsername(username);
-			
-			/* try binding a well known folder to verify username and password without sending a mail to the user.
-			 * If binding fails exception will be catched and BadCredentialsException will be thrown.
-			 */
-			Folder.bind(service, WellKnownFolderName.Inbox);
-			return authentication;
-		} catch(UsernameNotFoundException e){
-			//continue
+			if(userDao.findByUsername(username) != null){
+				/* try binding a well known folder to verify username and password without sending a mail to the user.
+				 * If binding fails exception will be catched and BadCredentialsException will be thrown.
+				 */
+				Folder.bind(service, WellKnownFolderName.Inbox);
+				return authentication;
+			}
 		} catch(Exception e){
 			throw new BadCredentialsException("login failed", e);
 		}
