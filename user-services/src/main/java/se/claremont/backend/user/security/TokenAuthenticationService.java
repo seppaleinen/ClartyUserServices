@@ -25,6 +25,7 @@ class TokenAuthenticationService {
 				.signWith(SignatureAlgorithm.HS512, SECRET)
 				.compact();
 		res.addHeader(HEADER_STRING, TOKEN_PREFIX + " " + JWT);
+		res.addHeader("Access-Control-Allow-Origin", "*");
 	}
 
 	static Authentication getAuthentication(HttpServletRequest request) {
