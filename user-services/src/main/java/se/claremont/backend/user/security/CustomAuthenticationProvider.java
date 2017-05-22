@@ -14,6 +14,9 @@ import org.springframework.stereotype.Component;
 
 import microsoft.exchange.webservices.data.core.ExchangeService;
 import microsoft.exchange.webservices.data.core.enumeration.misc.ExchangeVersion;
+import microsoft.exchange.webservices.data.core.enumeration.property.WellKnownFolderName;
+import microsoft.exchange.webservices.data.core.exception.http.HttpErrorException;
+import microsoft.exchange.webservices.data.core.service.folder.Folder;
 import microsoft.exchange.webservices.data.core.service.item.EmailMessage;
 import microsoft.exchange.webservices.data.credential.ExchangeCredentials;
 import microsoft.exchange.webservices.data.credential.WebCredentials;
@@ -34,24 +37,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		String username = authentication.getName();
 		String password = (String)authentication.getCredentials();
 
-		/*
-		 * 1. Check if the username exists in database. If so, the user has successfully logged in before and has
-		 * received a confirmation email. Return authenticated user.
-		 */
-		try {
-			userDao.findByUsername(username);
-			return authentication;
-		} catch(UsernameNotFoundException e){
-			// continue
-		}
-
-
-		/*
-		 * 2. If the user logins for the first time: Try to send a mail to the
-		 * user for confirmation that login was successful.
-		 *
-		 * <!-- -------------START "login first time"------------ -->
-		 */
+		// set up Exchange service
 		ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
 		ExchangeCredentials credentials = new WebCredentials(username, password);
 		service.setCredentials(credentials);
@@ -62,6 +48,32 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		} catch (URISyntaxException e) {
 			throw new AuthenticationServiceException("Invalid outlook endpoint", e);
 		}
+		
+		try {
+			/*
+			 * 1. Check if the username exists in database. If so, the user has successfully logged in before and has
+			 * received a confirmation email.
+			 */
+			userDao.findByUsername(username);
+			
+			/* try binding a well known folder to verify username and password without sending a mail to the user.
+			 * If binding fails exception will be catched and BadCredentialsException will be thrown.
+			 */
+			Folder.bind(service, WellKnownFolderName.Inbox);
+			return authentication;
+		} catch(UsernameNotFoundException e){
+			//continue
+		} catch(Exception e){
+			throw new BadCredentialsException("login failed", e);
+		}
+
+
+		/*
+		 * 2. If the user logins for the first time: Try to send a mail to the
+		 * user for confirmation that login was successful.
+		 *
+		 * <!-- -------------START "login first time"------------ -->
+		 */
 		
 		EmailMessage msg;
 		try {
