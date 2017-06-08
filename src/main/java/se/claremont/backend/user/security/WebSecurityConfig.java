@@ -16,18 +16,20 @@ import se.claremont.backend.user.repository.UserRepository;
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-	
+
 	@Autowired
-	private ApplicationContext appContext;
-	
+	private UserRepository userRepository;
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.csrf().disable().authorizeRequests().antMatchers("/")
 		.permitAll().antMatchers(HttpMethod.POST, "/login")
 		.permitAll().anyRequest().authenticated().and()
 		// We filter the api/login requests
-		.addFilterBefore(new JWTLoginFilter("/login", authenticationManager()),
-				UsernamePasswordAuthenticationFilter.class)
+		.addFilterBefore(
+				new JWTLoginFilter("/login", authenticationManager()),
+				UsernamePasswordAuthenticationFilter.class
+        )
 		// And filter other requests to check the presence of JWT in header
 		.addFilterBefore(new JWTAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 	}
@@ -35,19 +37,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		// Create a default account
-		UserRepository userDao = (UserRepository)appContext.getBean("userDao");
 		CustomAuthenticationProvider customAuthenticationProvider = new CustomAuthenticationProvider();
-		customAuthenticationProvider.setUserDao(userDao);
+		customAuthenticationProvider.setUserDao(userRepository);
 		auth.authenticationProvider(customAuthenticationProvider);
 		auth.inMemoryAuthentication().withUser("admin").password("password").roles("ADMIN");
-	}
-
-	public ApplicationContext getAppContext() {
-		return appContext;
-	}
-
-	public void setAppContext(ApplicationContext appContext) {
-		this.appContext = appContext;
 	}
 
 }

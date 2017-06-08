@@ -6,8 +6,8 @@ import se.claremont.backend.user.repository.entities.User;
 
 public interface UserRepository extends CrudRepository<User, Long> {
 
-	public User findByUsername(String username);
+	User findByUsername(String username);
 	
-	public void deleteByUsername(String username);
+	void deleteByUsername(String username);
 	
 }

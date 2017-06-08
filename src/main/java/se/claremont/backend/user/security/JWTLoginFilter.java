@@ -51,7 +51,6 @@ public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
 			throw new BadCredentialsException("Bad credentials", e);
 		}
 
-
 	}
 
 	@Override
