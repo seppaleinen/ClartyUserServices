@@ -27,7 +27,7 @@ public class UserRepositoryTest {
 
     @Test
     public void canSaveWithAllArgs() {
-        assertNotNull(userRepository.save(new User(1L, "username")));
+        assertNotNull(userRepository.save(new User("username")));
     }
 
     @Test
@@ -39,13 +39,13 @@ public class UserRepositoryTest {
 
     @Test
     public void canFindByUsername() {
-        userRepository.save(new User(0L, "username3"));
+        userRepository.save(new User("username3"));
         assertEquals("username3", userRepository.findByUsername("username3").getUsername());
     }
 
     @Test
     public void canDeleteByUsername() {
-        userRepository.save(new User(0L, "username"));
+        userRepository.save(new User("username"));
         userRepository.deleteByUsername("username");
         assertNull(userRepository.findByUsername("username"));
     }

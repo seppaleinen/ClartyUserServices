@@ -23,8 +23,7 @@ public class User {
 
 	public User() {}
 
-	public User(Long id, String username) {
-	    this.id = id;
+	public User(String username) {
 	    this.username = username;
     }
 	

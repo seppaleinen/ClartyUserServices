@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import se.claremont.backend.user.security.WebSecurityConfig;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -32,6 +33,8 @@ public class IntegrationTest {
     @Autowired
     private MockMvc mvc;
     private String token;
+    @Autowired
+    private WebSecurityConfig webSecurityConfig;
 
     @Before
     public void setup() throws Exception {
@@ -42,11 +45,16 @@ public class IntegrationTest {
     }
 
     @Test
-    public void canLogin() throws Exception {
+    public void canLoginWithDefaultUsername() throws Exception {
         mvc.perform(MockMvcRequestBuilders.post("/login")
                 .content("{\"username\":\"admin\",\"password\":\"password\"}"))
                 .andExpect(MockMvcResultMatchers.status().is(HttpStatus.OK.value()))
                 .andExpect(MockMvcResultMatchers.header().string(HttpHeaders.AUTHORIZATION, not(isEmptyOrNullString())));
+    }
+
+    @Test
+    public void canLoginWithCustomUser() {
+
     }
 
     @Test

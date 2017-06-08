@@ -2,6 +2,7 @@ package se.claremont.backend.user.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
@@ -16,7 +17,7 @@ class TokenAuthenticationService {
 	private static final long EXPIRATION_TIME = 864_000_000; // 10 days
 	private static final String SECRET = "ThisIsASecret";
 	private static final String TOKEN_PREFIX = "Bearer";
-	private static final String HEADER_STRING = "Authorization";
+	private static final String HEADER_STRING = HttpHeaders.AUTHORIZATION;
 
 	static void addAuthentication(HttpServletResponse res, String username) {
 		String JWT = Jwts.builder()
@@ -25,7 +26,7 @@ class TokenAuthenticationService {
 				.signWith(SignatureAlgorithm.HS512, SECRET)
 				.compact();
 		res.addHeader(HEADER_STRING, TOKEN_PREFIX + " " + JWT);
-		res.addHeader("Access-Control-Allow-Origin", "*");
+		res.addHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 	}
 
 	static Authentication getAuthentication(HttpServletRequest request) {
