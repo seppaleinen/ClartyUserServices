@@ -1,11 +1,7 @@
 package se.claremont.backend.user.security;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,23 +9,23 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
 import microsoft.exchange.webservices.data.core.ExchangeService;
-import microsoft.exchange.webservices.data.core.enumeration.misc.ExchangeVersion;
 import microsoft.exchange.webservices.data.core.enumeration.property.WellKnownFolderName;
 import microsoft.exchange.webservices.data.core.service.folder.Folder;
-import microsoft.exchange.webservices.data.core.service.item.EmailMessage;
-import microsoft.exchange.webservices.data.credential.ExchangeCredentials;
-import microsoft.exchange.webservices.data.credential.WebCredentials;
-import microsoft.exchange.webservices.data.property.complex.MessageBody;
 import se.claremont.backend.user.repository.UserRepository;
 import se.claremont.backend.user.repository.entities.User;
+import se.claremont.backend.user.security.utils.EmailHelper;
+import se.claremont.backend.user.security.utils.OutlookService;
 
 // TODO fix real integration to Outlook API
 
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
-	private static final String OUTLOOK_API = "https://outlook.office365.com/EWS/Exchange.asmx";
 	@Autowired
 	private UserRepository userDao;
+	@Autowired
+	private OutlookService outlookService;
+	@Autowired
+	private EmailHelper emailHelper;
 
 	@Override
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -37,14 +33,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		String password = (String)authentication.getCredentials();
 
 		// set up Exchange service
-		ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2010_SP2);
-		service.setCredentials(new WebCredentials(username, password));
-		
-		try {
-			service.setUrl(new URI(OUTLOOK_API));
-		} catch (URISyntaxException e) {
-			throw new AuthenticationServiceException("Invalid outlook endpoint", e);
-		}
+		ExchangeService service = outlookService.verifyOutlook(username, password);
 		
 		try {
 			/*
@@ -69,17 +58,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		 *
 		 * <!-- -------------START "login first time"------------ -->
 		 */
-		
-		try {
-			EmailMessage msg = new EmailMessage(service);
-			msg.setSubject("Välkommen till Clarty!");
-			msg.setBody(MessageBody.getMessageBodyFromText("Du är nu registrerad på Clarty. Detta mail går inte att svara på."));
-			msg.getToRecipients().add(username);
-			msg.send();
-		} catch (Exception e) {
-			throw new BadCredentialsException("Login failed", e);
-		}
-
+		emailHelper.verifyByMail(service, username);
 		// <!-- -------------END "login first time"------------ -->
 
 

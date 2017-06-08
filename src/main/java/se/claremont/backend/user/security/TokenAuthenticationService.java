@@ -19,6 +19,8 @@ class TokenAuthenticationService {
 	private static final String TOKEN_PREFIX = "Bearer";
 	private static final String HEADER_STRING = HttpHeaders.AUTHORIZATION;
 
+	private TokenAuthenticationService() {}
+
 	static void addAuthentication(HttpServletResponse res, String username) {
 		String JWT = Jwts.builder()
 				.setSubject(username)
