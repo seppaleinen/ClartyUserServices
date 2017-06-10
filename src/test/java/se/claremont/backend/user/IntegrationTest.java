@@ -123,6 +123,14 @@ public class IntegrationTest {
     }
 
     @Test
+    public void getRootUrl() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.get("/")
+                .header(HttpHeaders.AUTHORIZATION, token))
+                .andExpect(MockMvcResultMatchers.status().is(HttpStatus.OK.value()))
+                .andExpect(MockMvcResultMatchers.content().string("hello world"));
+    }
+
+    @Test
     public void mockAllExternals() throws Exception {
         OutlookService outlookService = mock(OutlookService.class);
         EmailHelper emailHelper = mock(EmailHelper.class);
